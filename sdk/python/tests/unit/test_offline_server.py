@@ -187,7 +187,11 @@ def test_module_level_fips_sets_env_before_pyarrow_import():
         capture_output=True,
         text=True,
         env=env,
-        timeout=60,
+        # A cold subprocess importing feast.offline_server pulls in pyarrow and
+        # gRPC, which can take well over a minute on contended CI runners (notably
+        # macOS). Allow generous headroom so this does not flake while still
+        # catching a genuine import hang.
+        timeout=300,
     )
     assert result.returncode == 0, (
         f"Subprocess failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
